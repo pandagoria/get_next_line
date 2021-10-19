@@ -1,6 +1,6 @@
 #include "get_next_line.h"
 
-char	*read_fd(fd)
+static char	*read_fd(fd)
 {
 	char	*buff;
 	size_t	reader;
@@ -11,7 +11,7 @@ char	*read_fd(fd)
 	reader = read(fd, buff, BUFFER_SIZE);
 	if (reader < 0)
 		return (NULL);
-	buff[i] = '\0';
+	buff[len(buff)] = '\0';
 	return (buff);
 }
 
@@ -19,19 +19,28 @@ char	*get_next_line(int fd)
 {
 	char	*buff;
 	char	*line;
+	static char 	*leftover;
 	size_t	i;
 
 	if (fd < 0)
 		return (NULL);
+	if (ft_strchr(leftover, '\n'))
+		
 	buff = read_fd(fd);
-	i = 0;
-	while (buff[i] != '\n' || buf[i] != '\0')
+	while (*buff != '\n' || *buff != '\0')
+		*line++ = *buff++;
+	if (*buff == '\n')
+		*line = '\n';
+	else if (*buff == '\0')
 	{
-		line[i] = buff[i];
+		*line = '\0';
+		free(buff);
+		free(leftover);
+		return (line);
 	}
-	if (buff[i] == '\0')
-		line[i] = '\0';
-	else if (buff[i] == '\n')
-		line[i] = '\n';
+	buff++;
+	leftover = ft_strdup(buff);
+	free(buff);
 	return (line);
 }
+
