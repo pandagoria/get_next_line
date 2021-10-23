@@ -1,14 +1,33 @@
 #include "get_next_line.h"
 #include <stdio.h>
 
-/*static char	*new_lo(char *s)
+static char	*fill_lo(char *buff, int len)
 {
-	char	*temp;
+	char	*lo;
+	int		i;
 
-	temp = s;
-	while(s++)
-	free(s);
-}*/
+	lo = (char *) malloc((ft_strlen(buff) - len + 1) * sizeof(char));
+	if (!lo)
+		return (NULL);
+	i = 0;
+	while (buff[len] != '\0')
+	{
+		lo[i] = buff[len];
+		i++;
+		len++;
+		printf("LO %c\n", lo[i]);
+	}
+	lo[i] = '\0';
+	//printf("LO - %s\n", lo);
+	return (lo);
+}
+
+static char	*new_line(char *buff, int i)
+{
+	char	line[];
+
+	
+}
 
 char	*get_next_line(int fd)
 {
@@ -36,41 +55,36 @@ char	*get_next_line(int fd)
 	{
 		if (ft_strchr(leftover, '\n'))
 		{
-			line = (char *) leftover;
 			while (*leftover != '\n')
-			{
-				printf("%c\n", *line);
 				*line++ = *leftover++;
-			}
-			*line = '\n';
-			if (*leftover++)
-				leftover = "puk";
-			return (line);
+			printf("%s\n", line);
+			return ((char *)line);
 		}
 	}
 	if (leftover != 0 && buff != 0)
 	{
-		temp = buff;
-		free(buff);
-		buff = ft_strjoin(leftover, temp);
-		free(leftover);
+		temp = ft_strjoin(leftover, buff);
+		buff = temp;
 	}
 	i = 0;
-	line = buff;
-	while (buff[i] != '\n' && buff[i] != '\0')
+	line = (char *) buff;
+	while (buff[i])
 	{
-		line[i] = buff[i];
+		if (buff[i] == '\n')
+		{
+			i++;
+			break ;
+		}
 		i++;
 	}
-	printf("%s", line);
-	if (buff[i] == '\n')
-	{
-		line[i] = '\n';
-	}
+	printf("line = %s", line);
+	if (buff[++i] != '\0')
+		leftover = fill_lo(buff, i);
+	line = new_line(buff, i);
+	free(buff);
 	if (reader == 0)
 	{
 		printf("Ebat chto ty tut delaesh blyat'");
-		*line = '\0';
 		free(buff);
 		free(leftover);
 	}
