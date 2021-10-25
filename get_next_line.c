@@ -30,18 +30,19 @@ static char	*fill_line(char *src)
 	return (line);
 }
 
-static char	*check_n_fill(char *src, int len)
+static char	*check_n_fill(char *buff, char *leftover, char *line)
 {
 	char	*lo;
-	int	i;
+	int	len;
 
-	if (!src || src[len] == '\0')
-		return (NULL);
-	i = 0;
-	lo = (char *) malloc (((ft_strlen(src) - len) + 1) * sizeof(char));
-	while (src[len] != '\0')
-		lo[i++] = src[len++];
-	lo[i] = '\0';
+	len = 0;
+	lo = NULL;
+	if (line)
+		len = ft_strlen(line);
+	if (!line && buff && leftover)
+		lo = ft_strjoin(leftover, buff);
+	else if (!line && !leftover && buff)
+		lo = ft_strdup(buff);
 	return (lo);
 }
 
@@ -50,9 +51,7 @@ char	*get_next_line(int fd)
 	char		buff[BUFFER_SIZE + 1];
 	char		*line;
 	static char	*leftover;
-	char		*tmp;
 
-	leftover = NULL;
 	line = NULL;
 	if (fd < 0 || BUFFER_SIZE < 1 || read(fd, buff, 0) < 0)
 		return (NULL);
@@ -68,30 +67,29 @@ char	*get_next_line(int fd)
 		else if (ft_strchr(buff, '\n'))
 			line = fill_line(buff);
 	}
-	if (check_n_fill(leftover, ft_strlen(line)) != 0)
-	{
-		tmp = check_n_fill(leftover, ft_strlen(line));
-		free(leftover);
-		leftover = tmp;
-	}
-	else if (check_n_fill(buff, ft_strlen(line)) != 0)
-		leftover = check_n_fill(buff, ft_strlen(line));
+	leftover = check_n_fill(buff, leftover, line);
+	printf("%s\n", leftover);
 	return (line);
 }
-/*
+
 #include <fcntl.h>
 
 int main()
 {
 	int	fd;
-	fd = open("41_no_nl", O_RDONLY);
+	int	i;
+	i = 0;
+	fd = open("41_with_nl", O_RDONLY);
 	if (fd == -1)
 		printf("cannot open file");
 	printf("|FD - %d|\n", fd);
 	char	*s = get_next_line(fd);
-	printf("RESULT1 - %s\n", s);
-	//s = get_next_line(fd);
-	//printf("RESULT2 - %s\n", s);
+	while (i < 40)
+	{
+		s = get_next_line(fd);
+		printf("RESULT - %s\n", s);
+		i++;
+	}
 	close(fd);
 	return (0);
-}*/
+}
