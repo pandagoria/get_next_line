@@ -1,109 +1,97 @@
 #include "get_next_line.h"
 #include <stdio.h>
 
-static char	*fill_lo(char *buff, int len)
+static char	*fill_line(char *src)
 {
-	char	*lo;
-	int		i;
+	char	*line;
+	int	len;
+	int	i;
 
-	lo = (char *) malloc((ft_strlen(buff) - len + 1) * sizeof(char));
-	if (!lo)
-		return (NULL);
+	len = 0;
 	i = 0;
-	while (buff[len] != '\0')
+	while (src[len] != '\0')
 	{
-		lo[i] = buff[len];
-		i++;
+		if (src[len] == '\n')
+		{
+			len++;
+			break ;
+		}
 		len++;
-		printf("LO %c\n", lo[i]);
 	}
-	lo[i] = '\0';
-	//printf("LO - %s\n", lo);
-	return (lo);
+	line = (char *) malloc ((len + 1) * sizeof(char));
+	if (!line)
+		return (NULL);
+	while (i < len)
+	{
+		line[i] = src[i];
+		i++;
+	}
+	line[i] = '\0';
+	return (line);
 }
 
-static char	*new_line(char *buff, int i)
+static char	*check_n_fill(char *src, int len)
 {
-	char	line[];
+	char	*lo;
+	int	i;
 
-	
+	if (!src || src[len] == '\0')
+		return (NULL);
+	i = 0;
+	lo = (char *) malloc (((ft_strlen(src) - len) + 1) * sizeof(char));
+	while (src[len] != '\0')
+		lo[i++] = src[len++];
+	lo[i] = '\0';
+	return (lo);
 }
 
 char	*get_next_line(int fd)
 {
-	char	*buff;
-	char	*line;
+	char		buff[BUFFER_SIZE + 1];
+	char		*line;
 	static char	*leftover;
-	char	*temp;
-	int	reader;
-	int	i;
+	char		*tmp;
 
-	if (fd < 0)
+	leftover = NULL;
+	line = NULL;
+	if (fd < 0 || BUFFER_SIZE < 1 || read(fd, buff, 0) < 0)
 		return (NULL);
-	if (!leftover)
+	if (ft_strchr(leftover, '\n') != 0)
+		line = fill_line(leftover);
+	else 
 	{
-		buff = (char *) malloc((BUFFER_SIZE + 1) * sizeof(char));
-		if (!buff)
+		if (read(fd, buff, BUFFER_SIZE) <= 0)
 			return (NULL);
-		reader = read(fd, buff, BUFFER_SIZE);
-		if (reader < 0)
-			return (NULL);
-		buff[ft_strlen(buff)] = '\0';
-		printf("READER - %d, length - %zu |%s|\n", reader, ft_strlen(buff), buff);
+		buff[BUFFER_SIZE] = '\0';
+		if (leftover && ft_strchr(buff, '\n'))
+			line = fill_line(ft_strjoin(leftover, buff));
+		else if (ft_strchr(buff, '\n'))
+			line = fill_line(buff);
 	}
-	if (leftover)
+	if (check_n_fill(leftover, ft_strlen(line)) != 0)
 	{
-		if (ft_strchr(leftover, '\n'))
-		{
-			while (*leftover != '\n')
-				*line++ = *leftover++;
-			printf("%s\n", line);
-			return ((char *)line);
-		}
-	}
-	if (leftover != 0 && buff != 0)
-	{
-		temp = ft_strjoin(leftover, buff);
-		buff = temp;
-	}
-	i = 0;
-	line = (char *) buff;
-	while (buff[i])
-	{
-		if (buff[i] == '\n')
-		{
-			i++;
-			break ;
-		}
-		i++;
-	}
-	printf("line = %s", line);
-	if (buff[++i] != '\0')
-		leftover = fill_lo(buff, i);
-	line = new_line(buff, i);
-	free(buff);
-	if (reader == 0)
-	{
-		printf("Ebat chto ty tut delaesh blyat'");
-		free(buff);
+		tmp = check_n_fill(leftover, ft_strlen(line));
 		free(leftover);
+		leftover = tmp;
 	}
+	else if (check_n_fill(buff, ft_strlen(line)) != 0)
+		leftover = check_n_fill(buff, ft_strlen(line));
 	return (line);
 }
-
+/*
 #include <fcntl.h>
 
 int main()
 {
 	int	fd;
-	fd = open("n.txt", O_RDONLY);
+	fd = open("41_no_nl", O_RDONLY);
 	if (fd == -1)
 		printf("cannot open file");
 	printf("|FD - %d|\n", fd);
 	char	*s = get_next_line(fd);
 	printf("RESULT1 - %s\n", s);
-	s = get_next_line(fd);
-	printf("RESULT2 - %s", s);
+	//s = get_next_line(fd);
+	//printf("RESULT2 - %s\n", s);
 	close(fd);
 	return (0);
-}
+}*/
