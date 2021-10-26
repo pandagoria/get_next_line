@@ -30,19 +30,20 @@ static char	*fill_line(char *src)
 	return (line);
 }
 
-static char	*check_n_fill(char *buff, char *leftover, char *line)
+static char	*check_n_fill(char *buff, char *leftover)
 {
 	char	*lo;
-	int	len;
+	char	*n_ptr;
 
-	len = 0;
+	if (leftover)
+		free(leftover);
+	n_ptr = NULL;
 	lo = NULL;
-	if (line)
-		len = ft_strlen(line);
-	if (!line && buff && leftover)
-		lo = ft_strjoin(leftover, buff);
-	else if (!line && !leftover && buff)
-		lo = ft_strdup(buff);
+	if (ft_strchr(buff, '\n'))
+	{
+		n_ptr = ft_strchr(buff, '\n');
+		lo = ft_substr(n_ptr + 1, 0, ft_strlen(n_ptr));
+	}
 	return (lo);
 }
 
@@ -51,27 +52,31 @@ char	*get_next_line(int fd)
 	char		buff[BUFFER_SIZE + 1];
 	char		*line;
 	static char	*leftover;
+	int			reader;
 
 	line = NULL;
 	if (fd < 0 || BUFFER_SIZE < 1 || read(fd, buff, 0) < 0)
 		return (NULL);
-	if (ft_strchr(leftover, '\n') != 0)
+	if (ft_strchr(leftover, '\n'))
 		line = fill_line(leftover);
-	else 
+	else
 	{
-		if (read(fd, buff, BUFFER_SIZE) <= 0)
-			return (NULL);
-		buff[BUFFER_SIZE] = '\0';
-		if (leftover && ft_strchr(buff, '\n'))
-			line = fill_line(ft_strjoin(leftover, buff));
-		else if (ft_strchr(buff, '\n'))
-			line = fill_line(buff);
+		reader = read(fd, buff, BUFFER_SIZE);
+		if (leftover)
+			line = ft_strjoin(line, leftover);
+		while (reader)
+		{
+			buff[BUFFER_SIZE] = '\0';
+			line = ft_strjoin(line, buff);
+			if (ft_strchr(line, '\n'))
+				break ;
+			reader = read(fd, buff, BUFFER_SIZE);
+		}
 	}
-	leftover = check_n_fill(buff, leftover, line);
-	printf("%s\n", leftover);
+	leftover = check_n_fill(buff, leftover);
 	return (line);
 }
-
+/*
 #include <fcntl.h>
 
 int main()
@@ -82,8 +87,10 @@ int main()
 	fd = open("41_with_nl", O_RDONLY);
 	if (fd == -1)
 		printf("cannot open file");
-	printf("|FD - %d|\n", fd);
 	char	*s = get_next_line(fd);
+	printf("RES %s\n", s);
+	s = get_next_line(fd);
+	printf("RES %s\n", s);
 	while (i < 40)
 	{
 		s = get_next_line(fd);
@@ -92,4 +99,4 @@ int main()
 	}
 	close(fd);
 	return (0);
-}
+}*/
