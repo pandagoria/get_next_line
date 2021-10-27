@@ -1,79 +1,75 @@
 #include "get_next_line.h"
 #include <stdio.h>
 
-static char	*fill_line(char *src)
+static void	copy_buff(char *buff)
 {
-	char	*line;
-	int	len;
-	int	i;
-
-	len = 0;
-	i = 0;
-	while (src[len] != '\0')
-	{
-		if (src[len] == '\n')
-		{
-			len++;
-			break ;
-		}
-		len++;
-	}
-	line = (char *) malloc ((len + 1) * sizeof(char));
-	if (!line)
-		return (NULL);
-	while (i < len)
-	{
-		line[i] = src[i];
-		i++;
-	}
-	line[i] = '\0';
-	return (line);
-}
-
-static char	*check_n_fill(char *buff, char *leftover)
-{
-	char	*lo;
+	int		i;
+	int		j;
+	char	new_buff[BUFFER_SIZE + 1];
 	char	*n_ptr;
 
-	if (leftover)
-		free(leftover);
-	n_ptr = NULL;
-	lo = NULL;
-	if (ft_strchr(buff, '\n'))
+	n_ptr = ft_strchr(buff, '\n');
+	i = 0;
+	if (!n_ptr || (n_ptr + 1) == '\0')
 	{
-		n_ptr = ft_strchr(buff, '\n');
-		lo = ft_substr(n_ptr + 1, 0, ft_strlen(n_ptr));
+		while (buff[i] != '\0')
+			buff[i++] = 0;
+		return ;
 	}
-	return (lo);
+	i = 0;
+	while (buff[i] != '\0')
+	{
+		if (buff[i] == '\n')
+			break ;
+		i++;
+	}
+	j = 0;
+	while (buff[i] != '\0')
+		new_buff[j++] = buff[++i];
+	new_buff[j] = '\0';
+	i = 0;
+	while (new_buff[i] != '\0')
+	{
+		buff[i] = new_buff[i];
+		i++;
+	}
+	buff[i] = '\0';
 }
 
 char	*get_next_line(int fd)
 {
-	char		buff[BUFFER_SIZE + 1];
-	char		*line;
-	static char	*leftover;
-	int			reader;
+	static char		buff[BUFFER_SIZE + 1];
+	char			*line;
+	int				reader;
 
 	line = NULL;
 	if (fd < 0 || BUFFER_SIZE < 1 || read(fd, buff, 0) < 0)
 		return (NULL);
-	if (ft_strchr(leftover, '\n'))
-		line = fill_line(leftover);
+	if (ft_strchr(buff, '\n'))
+	{
+		line = ft_strjoin(line, buff);
+		copy_buff(buff);
+	}
 	else
 	{
+		if (buff[0] != '\0')
+		{
+			line = ft_strjoin(line, buff);
+			copy_buff(buff);
+		}
 		reader = read(fd, buff, BUFFER_SIZE);
-		if (leftover)
-			line = ft_strjoin(line, leftover);
-		while (reader)
+		while (reader > 0)
 		{
 			buff[BUFFER_SIZE] = '\0';
 			line = ft_strjoin(line, buff);
+			copy_buff(buff);
 			if (ft_strchr(line, '\n'))
 				break ;
 			reader = read(fd, buff, BUFFER_SIZE);
 		}
+		if (reader == 0)
+			buff[0] = 0;
 	}
-	leftover = check_n_fill(buff, leftover);
 	return (line);
 }
 /*
@@ -84,19 +80,16 @@ int main()
 	int	fd;
 	int	i;
 	i = 0;
-	fd = open("41_with_nl", O_RDONLY);
+	fd = open("multiple_line_with_nl", O_RDONLY);
 	if (fd == -1)
 		printf("cannot open file");
-	char	*s = get_next_line(fd);
-	printf("RES %s\n", s);
-	s = get_next_line(fd);
-	printf("RES %s\n", s);
-	while (i < 40)
+	while (i <= 6)
 	{
-		s = get_next_line(fd);
+		char *s = get_next_line(fd);
 		printf("RESULT - %s\n", s);
 		i++;
 	}
 	close(fd);
 	return (0);
-}*/
+}
+*/
