@@ -1,12 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hlaunch <marvin@42.fr>                     +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2021/10/30 14:50:53 by hlaunch           #+#    #+#             */
+/*   Updated: 2021/10/30 14:50:58 by hlaunch          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 #include "get_next_line.h"
-#include <stdio.h>
 
-static void	copy_buff(char *buff)
+static int	check_n_eof(char *buff)
 {
-	int		i;
-	int		j;
-	char	new_buff[BUFFER_SIZE + 1];
 	char	*n_ptr;
+	int		i;
 
 	n_ptr = ft_strchr(buff, '\n');
 	i = 0;
@@ -14,8 +22,19 @@ static void	copy_buff(char *buff)
 	{
 		while (buff[i] != '\0')
 			buff[i++] = 0;
-		return ;
+		return (1);
 	}
+	return (0);
+}
+
+static void	copy_buff_nl(char *buff)
+{
+	char	new_buff[BUFFER_SIZE + 1];
+	int		i;
+	int		j;
+
+	if (check_n_eof(buff) == 1)
+		return ;
 	i = 0;
 	while (buff[i] != '\0')
 	{
@@ -36,6 +55,33 @@ static void	copy_buff(char *buff)
 	buff[i] = '\0';
 }
 
+static char	*fill_line(char *s1, char *s2)
+{
+	size_t	s1_len;
+	char	*new_str;
+
+	s1_len = ft_strlen(s1);
+	new_str = (char *) malloc ((s1_len + ft_strlen(s2) + 1) * sizeof(char));
+	if (new_str == NULL)
+		return (NULL);
+	if (s1)
+	{
+		new_str = ft_strlcpy(new_str, s1, s1_len + 1);
+		free(s1);
+	}
+	while (*s2)
+	{
+		if (*s2 == '\n')
+		{
+			new_str[s1_len++] = *s2;
+			break ;
+		}
+		new_str[s1_len++] = *s2++;
+	}
+	new_str[s1_len] = '\0';
+	return (new_str);
+}
+
 char	*get_next_line(int fd)
 {
 	static char		buff[BUFFER_SIZE + 1];
@@ -45,51 +91,22 @@ char	*get_next_line(int fd)
 	line = NULL;
 	if (fd < 0 || BUFFER_SIZE < 1 || read(fd, buff, 0) < 0)
 		return (NULL);
-	if (ft_strchr(buff, '\n'))
+	if (buff[0] != '\0')
 	{
-		line = ft_strjoin(line, buff);
-		copy_buff(buff);
+		line = fill_line(line, buff);
+		copy_buff_nl(buff);
 	}
-	else
+	if (ft_strchr(line, '\n'))
+		return (line);
+	reader = read(fd, buff, BUFFER_SIZE);
+	while (reader > 0)
 	{
-		if (buff[0] != '\0')
-		{
-			line = ft_strjoin(line, buff);
-			copy_buff(buff);
-		}
+		buff[reader] = '\0';
+		line = fill_line(line, buff);
+		copy_buff_nl(buff);
+		if (ft_strchr(line, '\n'))
+			break ;
 		reader = read(fd, buff, BUFFER_SIZE);
-		while (reader > 0)
-		{
-			buff[BUFFER_SIZE] = '\0';
-			line = ft_strjoin(line, buff);
-			copy_buff(buff);
-			if (ft_strchr(line, '\n'))
-				break ;
-			reader = read(fd, buff, BUFFER_SIZE);
-		}
-		if (reader == 0)
-			buff[0] = 0;
 	}
 	return (line);
 }
-/*
-#include <fcntl.h>
-
-int main()
-{
-	int	fd;
-	int	i;
-	i = 0;
-	fd = open("multiple_line_with_nl", O_RDONLY);
-	if (fd == -1)
-		printf("cannot open file");
-	while (i <= 6)
-	{
-		char *s = get_next_line(fd);
-		printf("RESULT - %s\n", s);
-		i++;
-	}
-	close(fd);
-	return (0);
-}
-*/
