@@ -9,7 +9,7 @@
 /*   Updated: 2021/10/30 14:50:58 by hlaunch          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 static int	check_n_eof(char *buff)
 {
