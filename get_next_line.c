@@ -18,7 +18,7 @@ static int	check_n_eof(char *buff)
 
 	n_ptr = ft_strchr(buff, '\n');
 	i = 0;
-	if (!n_ptr || (n_ptr + 1) == '\0')
+	if (!n_ptr || (n_ptr + 1) == 0)
 	{
 		while (buff[i] != '\0')
 			buff[i++] = 0;

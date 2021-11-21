@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "get_next_line_bonus.h"
+#include <limits.h>
 
 static int	check_n_eof(char *buff)
 {
@@ -18,7 +19,7 @@ static int	check_n_eof(char *buff)
 
 	n_ptr = ft_strchr(buff, '\n');
 	i = 0;
-	if (!n_ptr || (n_ptr + 1) == '\0')
+	if (!n_ptr || (n_ptr + 1) == 0)
 	{
 		while (buff[i] != '\0')
 			buff[i++] = 0;
@@ -84,7 +85,7 @@ static char	*fill_line(char *s1, char *s2)
 
 char	*get_next_line(int fd)
 {
-	static char		buff[10240][BUFFER_SIZE + 1];
+	static char		buff[OPEN_MAX][BUFFER_SIZE + 1];
 	char			*line;
 	int				reader;
 
